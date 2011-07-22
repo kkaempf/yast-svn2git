@@ -1,0 +1,122 @@
+
+include module.rule
+
+create repository yast-${MODULE}
+end repository
+
+match /trunk/${MODULE}/
+  repository yast-${MODULE}
+  branch master
+  # provide proper prefix path for commits with empty paths - see below as well
+  prefix /
+end match
+match /trunk/$
+  repository yast-${MODULE}
+  branch master
+end match
+
+match /tags/stable-([^/]+)/${MODULE}/
+  repository yast-${MODULE}
+  branch refs/tags/yast-${MODULE}/\1
+  annotated true
+  prefix /
+end match
+
+######################
+
+#     /tags/SuSE-Linux-9_3-GM/storage/
+match /tags/SuSE-Linux-([^/]+)-GM/${MODULE}/
+  repository yast-${MODULE}
+  branch refs/tags/yast-${MODULE}/openSUSE-\1/GM
+  annotated true
+  prefix /
+end match
+
+####################
+
+match /branches/Moblin/${MODULE}/
+  repository yast-${MODULE}
+  branch Moblin
+  prefix /
+end match
+match /branches/Moblin/$
+  repository yast-${MODULE}
+  branch Moblin
+end match
+
+match /branches/REFACTORING-10_3/${MODULE}/
+  repository yast-${MODULE}
+  branch REFACTORING-10_3
+  prefix /
+end match
+match /branches/REFACTORING-10_3/$
+  repository yast-${MODULE}
+  branch REFACTORING-10_3
+end match
+
+
+# SuSE-Code-11-Branch
+# SuSE-Code-11-SP2-Branch
+match /branches/SuSE-Code-([^/]+)-Branch/${MODULE}/
+  repository yast-${MODULE}
+  branch Code-\1
+  prefix /
+end match
+match /branches/SuSE-Code-([^/]+)-Branch/$
+  repository yast-${MODULE}
+  branch Code-\1
+end match
+
+# /tags/branch-Code-11-SP1-2_17_38_2/product-creator
+match /tags/branch-Code-([^/]+)-([\d_]+)/${MODULE}/
+  repository yast-${MODULE}
+  branch refs/tags/yast-${MODULE}/Code-\1/\2
+  annotated true
+  prefix /
+end match
+
+
+
+# SuSE-Linux-9_3-Branch
+match /branches/SuSE-Linux-([^/]+)-Branch/${MODULE}/
+  repository yast-${MODULE}
+  branch openSUSE-\1
+  prefix /
+end match
+match /branches/SuSE-Linux-([^/]+)-Branch/$
+  repository yast-${MODULE}
+  branch openSUSE-\1
+end match
+
+# /tags/branch-Linux-11_4-2_20_5/storage/
+match /tags/branch-Linux-([\d_]+)-([\d_]+)/${MODULE}/
+  repository yast-${MODULE}
+  branch refs/tags/yast-${MODULE}/openSUSE-\1/\2
+  annotated true
+  prefix /
+end match
+
+
+match /branches/SuSE-SLE-([^/]+)-Branch/${MODULE}/
+  repository yast-${MODULE}
+  branch SLE-\1
+  prefix /
+end match
+match /branches/SuSE-SLE-([^/]+)-Branch/$
+  repository yast-${MODULE}
+  branch SLE-\1
+end match
+
+# /tags/branch-SLE-10-2_13_11_1/storage/
+# /tags/branch-SLE-10-SP2-2_13_207/storag..
+match /tags/branch-SLE-([^/]+)-([\d_]+)/${MODULE}/
+  repository yast-${MODULE}
+  branch refs/tags/yast-${MODULE}/SLE-\1/\2
+  annotated true
+  prefix /
+end match
+
+
+##### Ignore everything else #####
+match /
+end match
