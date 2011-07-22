@@ -62,7 +62,10 @@ $debug = false
 
 def usage why=nil
   STDERR.puts "***Err: #{why}" if why
-  STDERR.puts "Usage: dump-splitter <dumpfile> <filter>"
+  STDERR.puts "Usage: [--debug] dump-splitter <dumpfile> <filter>"
+  STDERR.puts "\tFilters out <filter> from <dumpfile> and writes the result to stdout"
+  STDERR.puts "\t--debug adds debug statements as '#' comments to stdout."
+  STDERR.puts "\t        This makes the resulting dumpfile unusable with 'svnadmin load'"
   exit 1
 end
 
