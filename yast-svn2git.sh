@@ -38,5 +38,5 @@ echo "Convert SVN to GIT"
 # convert svn to bare git repo
 (cd ${module}.dir;
 rm -rf yast-${module};
-/abuild/projects/svn2git/svn-all-fast-export --debug-rules --add-metadata --identity-map yast.map --rules ../yast.rules svn > stdout.svn2git 2> stderr.svn2git;
+/abuild/projects/svn2git/svn-all-fast-export --debug-rules --add-metadata --identity-map ../yast.map --rules ../yast.rules svn > stdout.svn2git 2> stderr.svn2git;
 cd ..)
