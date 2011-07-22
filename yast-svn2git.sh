@@ -31,7 +31,7 @@ echo "Create new SVN repo"
 rm -rf svn;
 mkdir svn;
 cd svn;
-svnadmin create .; svnadmin load . < ../dump > stdout.svnadmin 2> stderr.svnadmin;
+svnadmin create .; svnadmin load . < ../dump > ../stdout.svnadmin 2> ../stderr.svnadmin;
 cd ../..)
 
 echo "Convert SVN to GIT"
