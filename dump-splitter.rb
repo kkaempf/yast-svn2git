@@ -436,6 +436,25 @@ class Revision
     end
     
     STDOUT.puts "# #{@num} is relevant for '#{node.path}'" if $debug
+    
+    # check if this is a move from another module
+    path = node['Node-copyfrom-path']
+    case path
+    when /trunk\/([^\/]+)\/(.*)/
+      from_module = $1
+      if from_module != filter
+	STDERR.puts "#{path}"
+      end
+    when /branches\/([^\/]+)\/([^\/]+)\/(.*)/
+      from_module = $2
+      if from_module != filter
+	STDERR.puts "Rev #{@num} copies from #{path}"
+      end
+    when nil
+    # skip
+    else
+#      STDERR.puts "Unhandled #{path}"
+    end
     @nodes << node
 
   end # def process
