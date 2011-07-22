@@ -62,8 +62,8 @@
 $debug = false
 $quiet = false
 
-# hash of filename => revision of extra files to track
-$extra_files = {}
+# hash of pathname => revision of extra pathes to track
+$extra_pathes = {}
 
 # hash of pathes created to bring parents of extra files into existance
 # kept here to prevent duplicate creations
@@ -224,6 +224,10 @@ class Node
 
   def []= key, value
     @item[key] = value
+  end
+
+  def action= a
+    @item['Node-action'] = a.to_s
   end
 
   def copy_to file
@@ -408,16 +412,21 @@ class Revision
       last_relevant, last_path = find_and_write_last_relevant_for path, file
       exit 1 unless last_relevant
       # check if this was an 'extra' path and if we have to add directories
-      if $extra_files[node.path] &&
-	 last_path != path        # last_relevant was a parent
+      
+      # if the node creates the dir path, then the dirname is missing, not the full path
+      # (for the 'file' case, we take the parent dir already above)
+      #
+      missing_path = (node.kind == :dir) ? File.dirname(path) : path
+      if $extra_pathes[node.path] &&
+	 last_path != missing_path        # last_relevant was a parent
         missings = []
-	while last_path != path
-	  missings << File.basename(path)
-	  path = File.dirname(path)
-	  break if path == "."
+	while last_path != missing_path
+	  missings << File.basename(missing_path)
+	  missing_path = File.dirname(missing_path)
+	  break if missing_path == "."
 	end
 	# consistency check. Maybe last_past was no parent ?!
-	if path == "."
+	if missing_path == "."
 	  STDERR.puts "Couldn't find missing directories"
 	  STDERR.puts "Last directory was #{last_path}"
 	  STDERR.puts "Missings #{missings.inspect}"
@@ -425,12 +434,24 @@ class Revision
 	end
         # add fake nodes to create missing directories
 	while !missings.empty?
-	  path = File.join(path, missings.pop)
-	  unless $created_extras[path]
-	    file.puts "# Create #{path}" if $debug
-	    faked_nodes << FakeNode.new(:dir, :add, path)
-	    $created_extras[path] = true
+	  missing_path = File.join(missing_path, missings.pop)
+	  unless $created_extras[missing_path]
+	    file.puts "# Create #{missing_path}" if $debug
+	    faked_nodes << FakeNode.new(:dir, :add, missing_path)
+	    $created_extras[missing_path] = true
 	  end
+	end
+      end
+
+      if $extra_pathes[node.path]
+	unless $created_extras[node.path]
+#	  STDERR.puts "Cutting history for #{node} at rev #{@num}"
+	  # the extra file could be a 'change' node. This happens
+	  # if it was created in another directory and then the directory
+	  # was renamed. Instead of backtracking directory renames, we cut
+	  # history here and make it an 'add' node
+	  node.action = :add if node.action == :change
+	  $created_extras[node.path] = true
 	end
       end
 
@@ -483,7 +504,12 @@ class Revision
 	self.make_relevant!
 	# continue
       else
-	return
+	extra_rev = $extra_pathes[node.path]
+	if extra_rev && @num <= extra_rev
+	  self.make_relevant!
+	else
+	  return
+	end
       end
 
       @@last_relevant_for[node.path] ||= []
@@ -496,7 +522,7 @@ class Revision
 	self.make_relevant!
 	# continue
       else
-	extra_rev = $extra_files[node.path]
+	extra_rev = $extra_pathes[node.path]
 	if extra_rev && @num <= extra_rev
 	  self.make_relevant!
 	else
@@ -510,7 +536,7 @@ class Revision
     
     # check if this is a move from another module
     path = node['Node-copyfrom-path']
-    unless $extra_files[path]
+    unless $extra_pathes[path]
       case path
       when /trunk\/([^\/]+)\/(.*)/
 	from_module = $1
@@ -565,7 +591,7 @@ if extras
   File.open(extras, "r") do |f|
     while (l = f.gets)
       lx = l.split(" ")
-      $extra_files[lx[1].chomp] = lx[0].to_i
+      $extra_pathes[lx[1].chomp] = lx[0].to_i
     end
   end
 end
