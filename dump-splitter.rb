@@ -36,6 +36,7 @@
 # 
 #
 # * Syntax of a SVN dump file
+# See http://svn.apache.org/repos/asf/subversion/trunk/notes/dump-load-format.txt for details
 #
 # 1. Items:
 #    Set of key/value pair lines
@@ -64,12 +65,17 @@ $quiet = false
 # hash of filename => revision of extra files to track
 $extra_files = {}
 
+# hash of pathes created to bring parents of extra files into existance
+# kept here to prevent duplicate creations
+$created_extras = {}
 def usage why=nil
   STDERR.puts "***Err: #{why}" if why
-  STDERR.puts "Usage: [--debug] dump-splitter <dumpfile> <filter>"
+  STDERR.puts "Usage: [--debug] [--quiet] [--extra <extras>] dump-splitter <dumpfile> <filter>"
   STDERR.puts "\tFilters out <filter> from <dumpfile> and writes the result to stdout"
   STDERR.puts "\t--debug adds debug statements as '#' comments to stdout."
   STDERR.puts "\t        This makes the resulting dumpfile unusable with 'svnadmin load'"
+  STDERR.puts "\t--quiet supresses displaying the revision count during parsing"
+  STDERR.puts "\t--extra add a file containing max-revisions and pathes to consider relevant"
   exit 1
 end
 
@@ -229,6 +235,28 @@ class Node
   end
 end
 
+# A faked node, not existing in dumpfile
+class FakeNode
+  attr_reader :path, :kind, :action
+  def initialize kind, action, path
+    @kind = kind
+    @action = action
+    @path = path
+  end
+  
+  def copy_to file
+    file.puts "Node-path: #{@path}"
+    file.puts "Node-kind: #{@kind}"
+    file.puts "Node-action: #{@action}"
+    file.puts "Prop-content-length: 10"
+    file.puts "Content-length: 10"
+    file.puts
+    file.puts "PROPS-END"
+  end
+  def to_s
+    "<#{@action},#{@kind}> #{@path}"
+  end
+end
 #
 # Represents a "Revision-number" item
 #
@@ -300,6 +328,9 @@ class Revision
   end
   
   # find last relevant in path
+  #
+  # returns pair of last relevant revision and path touched by this revision
+  #
   def find_and_write_last_relevant_for path, file, revnum = nil
     last_relevant = nil
     file.puts "# find_and_write_last_relevant_for #{path}" if $debug
@@ -341,7 +372,7 @@ class Revision
       end
     end
 
-    return last_relevant
+    return last_relevant, path
   end
 
   # process complete Revision according to filter
@@ -358,6 +389,8 @@ class Revision
 
     file.puts "# process_and_write #{self}" if $debug
 
+    faked_nodes = []
+
     @nodes.each do |node|
       
       next if node.action == :delete
@@ -372,8 +405,34 @@ class Revision
 	  next
 	end
       end
-      last_relevant = find_and_write_last_relevant_for path, file
+      last_relevant, last_path = find_and_write_last_relevant_for path, file
       exit 1 unless last_relevant
+      # check if this was an 'extra' path and if we have to add directories
+      if $extra_files[node.path] &&
+	 last_path != path        # last_relevant was a parent
+        missings = []
+	while last_path != path
+	  missings << File.basename(path)
+	  path = File.dirname(path)
+	  break if path == "."
+	end
+	# consistency check. Maybe last_past was no parent ?!
+	if path == "."
+	  STDERR.puts "Couldn't find missing directories"
+	  STDERR.puts "Last directory was #{last_path}"
+	  STDERR.puts "Missings #{missings.inspect}"
+	  exit 1
+	end
+        # add fake nodes to create missing directories
+	while !missings.empty?
+	  path = File.join(path, missings.pop)
+	  unless $created_extras[path]
+	    file.puts "# Create #{path}" if $debug
+	    faked_nodes << FakeNode.new(:dir, :add, path)
+	    $created_extras[path] = true
+	  end
+	end
+      end
 
       # check for Node-copyfrom-path and evtl. rewrite / backtrack
 
@@ -381,18 +440,21 @@ class Revision
       if path
 	# backtrack, find last relevant revision for this path
 	revnum = node['Node-copyfrom-rev'].to_i
-	last_relevant = find_and_write_last_relevant_for path, file, revnum
+	last_relevant, last_path = find_and_write_last_relevant_for path, file, revnum
 	exit 1 unless last_relevant
 	newnum = @@revision_number_mapping[last_relevant.num]
 	file.puts "# Node-copyfrom-rev #{revnum} -> #{newnum}<#{last_relevant.num}>" if $debug
 	node['Node-copyfrom-rev'] = newnum
       end
-    end
+    end # nodes.each
     
     # write Revision item
     
     self.copy_to file
     # write nodes
+    faked_nodes.each do |node|
+      node.copy_to file
+    end
     @nodes.each do |node|
       node.copy_to file
       path = node.path
@@ -450,7 +512,7 @@ class Revision
     path = node['Node-copyfrom-path']
     unless $extra_files[path]
       case path
-      when /t^runk\/([^\/]+)\/(.*)/
+      when /trunk\/([^\/]+)\/(.*)/
 	from_module = $1
 	STDERR.puts "#{@num} #{path}" if from_module != filter
       when /branches\/([^\/]+)\/([^\/]+)\/(.*)/
