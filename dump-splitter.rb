@@ -59,6 +59,10 @@
 #
 
 $debug = false
+$quiet = false
+
+# hash of filename => revision of extra files to track
+$extra_files = {}
 
 def usage why=nil
   STDERR.puts "***Err: #{why}" if why
@@ -430,7 +434,12 @@ class Revision
 	self.make_relevant!
 	# continue
       else
-	return
+	extra_rev = $extra_files[node.path]
+	if extra_rev && @num <= extra_rev
+	  self.make_relevant!
+	else
+	  return
+	end
       end
 
     end
@@ -439,21 +448,19 @@ class Revision
     
     # check if this is a move from another module
     path = node['Node-copyfrom-path']
-    case path
-    when /trunk\/([^\/]+)\/(.*)/
-      from_module = $1
-      if from_module != filter
-	STDERR.puts "#{path}"
+    unless $extra_files[path]
+      case path
+      when /t^runk\/([^\/]+)\/(.*)/
+	from_module = $1
+	STDERR.puts "#{@num} #{path}" if from_module != filter
+      when /branches\/([^\/]+)\/([^\/]+)\/(.*)/
+	from_module = $2
+	STDERR.puts "#{@num} #{path}" if from_module != filter
+      when nil
+      # skip
+      else
+      #      STDERR.puts "Unhandled #{path}"
       end
-    when /branches\/([^\/]+)\/([^\/]+)\/(.*)/
-      from_module = $2
-      if from_module != filter
-	STDERR.puts "Rev #{@num} copies from #{path}"
-      end
-    when nil
-    # skip
-    else
-#      STDERR.puts "Unhandled #{path}"
     end
     @nodes << node
 
@@ -467,11 +474,22 @@ end # class
 
 # get arguments
 
-dumpfile = ARGV.shift
-if dumpfile == "--debug"
-  $debug = true
+dumpfile = nil
+extras = nil
+loop do
   dumpfile = ARGV.shift
+  case dumpfile
+  when "--debug"
+    $debug = true
+  when "--quiet"
+    $quiet = true
+  when "--extra"
+    extras = ARGV.shift
+  else
+    break
+  end
 end
+
 filter = ARGV.shift
 usage "Missing <filter> argument" unless filter
 
@@ -480,6 +498,15 @@ outfile = STDOUT
 usage unless dumpfile
 
 STDERR.puts "Debug ON" if $debug
+
+if extras
+  File.open(extras, "r") do |f|
+    while (l = f.gets)
+      lx = l.split(" ")
+      $extra_files[lx[1].chomp] = lx[0].to_i
+    end
+  end
+end
 
 # open .dump file
 
@@ -517,7 +544,7 @@ loop do
     # start new rev
     rev = Revision.new(dump, item, filter)
     rev.make_relevant! if rev.num == 0
-    STDERR.write "#{rev.num}\r" if rev.num % 1000 == 0
+    STDERR.write "#{rev.num}\r" if !$quiet && rev.num % 1000 == 0
     # consistency check - revision numbers must be consecutive
     unless rev.num == num
       STDERR.puts "Have rev #{rev.num}, expecting rev #{num}"
