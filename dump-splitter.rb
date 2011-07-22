@@ -541,7 +541,7 @@ class Revision
       when /trunk\/([^\/]+)\/(.*)/
 	from_module = $1
 	STDERR.puts "#{@num} #{path}" if from_module != filter
-      when /branches\/([^\/]+)\/([^\/]+)\/(.*)/
+      when /branches\/([^\/]+)\/([^\/]+)\/(.*)/, /tags\/([^\/]+)\/([^\/]+)\/(.*)/
 	from_module = $2
 	STDERR.puts "#{@num} #{path}" if from_module != filter
       when nil
