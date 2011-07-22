@@ -12,6 +12,15 @@
 
 Edit <tt>yast-svn2git.sh</tt> and adapt the path to <tt>svn2git</tt> (the KDE tool)
 
+You can use
+
+  ruby list-subdirs.rb <dumpfile>
+  
+to extract possible module names from a SVN dump file
+
+
+## Run it ##
+
 Run
 
     yast-svn2git.sh <module>
@@ -21,6 +30,7 @@ where &lt;*module*&gt; is a subdirectory below <tt>/trunk</tt> or
 
 This will result in a &lt;*module*&gt; directory with a <tt>svn<tt>
 subdir and a yast-*module* **bare** git repo.
+
 
 ## About the conversion ##
 
@@ -33,6 +43,7 @@ This new dump is then loaded into a new SVN repo. This will only
 contain the commits relevant to the choosen module.
 
 The last step is using the KDE <tt>svn2git</tt> tool to convert from SVN to GIT
+
 
 ## Alternative approach ##
 
