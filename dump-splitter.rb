@@ -1,5 +1,33 @@
-# dump-splitter
+# dump-splitter.rb
 # Split SVN dump file according to subdirectory
+#
+# Written by Klaus Kämpf <kkaempf@suse.de>
+# License: GPL v2 only
+#
+# = Version history =
+#
+# Version 3.0
+# - handle branch points better 
+# - do not read whole history but do a stream filtering
+#   with a focus of rewriting branch points to relevant
+#   ones
+# - Problem: 'svn mv' from non-relevant revisions
+#
+# Version 2.0
+# - more elaborate dump filter focussing on node touching
+#   specific pathes
+# - read all revisions, then filter relevant ones
+# - Problem: branch points are hard to get right since they
+#   might be in the past and evtl. pointing to an non-relevant
+#   revision
+#
+# Version 1.0
+# - simple extractor of relevant rev numbers to feed as
+#   --revisions-file into svn-all-fast-export
+# - Problem: Fails to handle branch points as they origin
+#   from non-relevant revisions. Need to backtrack those.
+#
+# = Implementation =
 #
 # * Assumption
 # /trunk/<subdir>
