@@ -14,12 +14,12 @@ Edit <tt>yast-svn2git.sh</tt> and adapt the path to <tt>svn2git</tt> (the KDE to
 
 Run
 
-    yast-svn2git.sh *module*
+    yast-svn2git.sh <module>
 
-where *module* is a subdirectory below <tt>/trunk</tt> or
+where &lt;*module*&gt; is a subdirectory below <tt>/trunk</tt> or
 <tt>/branches/*branchname*</tt> at any time in the SVN history
 
-This will result in a *module* directory with a <tt>svn<tt>
+This will result in a &lt;*module*&gt; directory with a <tt>svn<tt>
 subdir and a yast-*module* **bare** git repo.
 
 ## About the conversion ##
@@ -44,8 +44,8 @@ For this use the <tt>map2authors.rb</tt> Ruby script to convert the
 
 Then start a local svn server
 
-    svnserve --foreground -d -R -r ./*module*/svn
+    svnserve --foreground -d -R -r ./<module>/svn
   
 and run the conversion
 
-    git svn clone --no-metadata -A authors.txt -Ttrunk -ttags -bbranches svn://localhost:3690 *name-of-git-repo*
+    git svn clone --no-metadata -A authors.txt -Ttrunk -ttags -bbranches svn://localhost:3690 <name-of-git-repo>
