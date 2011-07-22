@@ -4,20 +4,22 @@
 
 1. git
 2. ruby
-3. A 'svnadmin dump' of the YaST SVN repo, called *yast-full.dump*
+3. A <tt>svnadmin dump</tt> of the YaST SVN repo, called <tt>yast-full.dump</tt>
 4. The svn2git tool from KDE (http://techbase.kde.org/Projects/MoveToGit/UsingSvn2Git)
 5. Some disk space (The YaST svn dump is 4GB already)
 
 ## Setup ##
 
-Edit *yast-svn2git.sh* and adapt the path to svn2git (the KDE tool)
+Edit <tt>yast-svn2git.sh</tt> and adapt the path to <tt>svn2git</tt> (the KDE tool)
 
 Run
+
     yast-svn2git.sh *module*
+
 where *module* is a subdirectory below <tt>/trunk</tt> or
 <tt>/branches/*branchname*</tt> at any time in the SVN history
 
-This will result in a *module* directory with a *svn*
+This will result in a *module* directory with a <tt>svn<tt>
 subdir and a yast-*module* **bare** git repo.
 
 ## About the conversion ##
@@ -37,11 +39,13 @@ The last step is using the KDE <tt>svn2git</tt> tool to convert from SVN to GIT
 Another approach is to use the new SVN repo and <tt>git svn clone</tt> for
 the conversion.
 
-For this use the map2authors.rb Ruby script to convert the
+For this use the <tt>map2authors.rb</tt> Ruby script to convert the
 <tt>yast.map</tt> to an <tt>authors.txt</tt> file first.
 
 Then start a local svn server
+
     svnserve --foreground -d -R -r ./*module*/svn
   
 and run the conversion
+
     git svn clone --no-metadata -A authors.txt -Ttrunk -ttags -bbranches svn://localhost:3690 *name-of-git-repo*
