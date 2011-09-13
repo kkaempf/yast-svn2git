@@ -23,7 +23,7 @@ mkdir ${module}.dir
 
 echo "Extracting relevant revisions"
 # split the full dump
-ruby dump-splitter.rb yast-full.dump ${module} > ${module}.dir/dump
+ruby dump-splitter.rb --debug ../yast-full.dump yast-full.solv ${module} > ${module}.dir/dump
 
 echo "Create new SVN repo"
 # load the splitted dump into a new svn repo
