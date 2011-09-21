@@ -1,7 +1,9 @@
 #
 # Logging
 #
-
+# Simple logger class providing log level, log name, and logging
+#
+#
 class Log
   @@level = 0
   @@out = STDERR
