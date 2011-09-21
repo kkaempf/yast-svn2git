@@ -1,5 +1,8 @@
 # dump2solv.rb
 #
+# Convert metadata of SVN dump file to Satsolver .solv format
+#
+#
 # Handling a large SVN dump is resource-intensive because the
 # dump includes the actual file contents.
 #
