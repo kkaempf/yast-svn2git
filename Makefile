@@ -19,7 +19,7 @@ extract: moduledir
 
 moduledir: module.rule
 	rm -rf $(MODULE).dir
-	mkdir $(MODULE).dir
+	mkdir -p $(MODULE).dir
 
 module.rule: modulename
 	-echo "declare MODULE=$(MODULE)" > module.rule
