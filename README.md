@@ -4,6 +4,7 @@
 
 1. git
 2. ruby
+2. ruby-satsolver
 3. A <tt>svnadmin dump</tt> of the YaST SVN repo, called <tt>yast-full.dump</tt>
 4. The svn2git tool from KDE (http://techbase.kde.org/Projects/MoveToGit/UsingSvn2Git)
 5. Some disk space (The YaST svn dump is 4GB already)
