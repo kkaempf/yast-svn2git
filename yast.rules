@@ -10,9 +10,10 @@ match /trunk/${MODULE}/
   # provide proper prefix path for commits with empty paths - see below as well
   prefix /
 end match
-match /trunk/$
+match /trunk/
   repository yast-${MODULE}
   branch master
+  prefix /
 end match
 
 match /tags/stable-([^/]+)/${MODULE}/

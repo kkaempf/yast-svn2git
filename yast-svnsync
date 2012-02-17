@@ -1,0 +1,33 @@
+#!/bin/sh
+: ${DESTDIR=../yast-svn}
+: ${SRCREPO=https://svn.opensuse.org/svn/yast}
+
+mkdir -p "$DESTDIR"
+cd "$DESTDIR"
+PULL=./pull
+
+init() {
+    if [ -f format ]; then
+        echo Skipping initialization
+        return
+    fi
+
+    svnadmin create .
+
+    # allow changing revprops, svnsync needs it
+    echo '#!/bin/sh' > hooks/pre-revprop-change
+    chmod +x hooks/pre-revprop-change
+
+    DESTREPO="file://$(pwd)"
+    svnsync init "$DESTREPO" "$SRCREPO"
+
+    echo '#!/bin/sh' > $PULL
+    echo 'svnsync sync file://$(pwd)' >> $PULL
+    chmod +x $PULL
+
+    echo Run $DESTDIR/$PULL to sync later changes.
+    echo Doing it now for the 1st time
+}
+
+init
+$PULL

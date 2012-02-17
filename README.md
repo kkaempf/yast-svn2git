@@ -4,10 +4,25 @@
 
 1. git
 2. ruby
+2. ruby-satsolver
 3. A <tt>svnadmin dump</tt> of the YaST SVN repo, called <tt>yast-full.dump</tt>
 4. The svn2git tool from KDE (http://techbase.kde.org/Projects/MoveToGit/UsingSvn2Git)
 5. Some disk space (The YaST svn dump is 4GB already)
 
+## Getting a SVN Dump ##
+
+Optionally use a mirror near you as the source:
+
+    export SRCREPO='svn+ssh://mrakoplas.suse.cz/local/home2/yast2git/yast-svn'
+
+Set up a mirror and sync it (takes up 1.8GB):
+
+    ./yast-svnsync
+
+Dump the mirrored repo (additional 4.4GB):
+
+    svnadmin dump ../yast-svn > ../yast-full.dump
+  
 ## Setup ##
 
 Edit <tt>yast-svn2git.sh</tt> and adapt the path to <tt>svn2git</tt> (the KDE tool)
@@ -28,7 +43,7 @@ Run
 where &lt;*module*&gt; is a subdirectory below <tt>/trunk</tt> or
 <tt>/branches/*branchname*</tt> at any time in the SVN history
 
-This will result in a &lt;*module*&gt; directory with a <tt>svn<tt>
+This will result in a &lt;*module*&gt; directory with a `svn`
 subdir and a yast-*module* **bare** git repo.
 
 
